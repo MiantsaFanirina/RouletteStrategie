@@ -1,6 +1,6 @@
 "use client"
 import { Slider } from "@/components/ui/slider";
-import { useState } from "react";
+import {Dispatch, SetStateAction, useState} from "react";
 import BetCard from "@/components/BetCard";
 import {
     Select,
@@ -12,40 +12,16 @@ import {
 } from "@/components/ui/select";
 
 
-const BetAmountForm = () => {
-    const [val, setVal] = useState([0.5]);
-    const [multiplier, setMultiplier] = useState(3)
+const BetAmountForm = ({unit, setUnit, val, setVal, bets, multiplier, setMultiplier} : {
+    unit: string;
+    setUnit: Dispatch<SetStateAction<string>>,
+    val: number[],
+    setVal: Dispatch<SetStateAction<number[]>>,
+    bets: BetType[],
+    multiplier: number,
+    setMultiplier:  Dispatch<SetStateAction<number>>
 
-    // Génère la séquence de Fibonacci
-    function fibonacciSequence(start: number): number[] {
-        const fib: number[] = [start, start];
-
-        for (let i = 2; i < 10; i++) {
-            fib.push(fib[i - 1] + fib[i - 2]);
-        }
-
-        return fib;
-    }
-
-    // Fonction pour calculer les résultats de chaque tour
-    function calculateBets(fib: number[]): { tour: number, currentBet: number, gain: number, loss: number }[] {
-        let totalLoss = 0;
-        let previousBetsSum = 0;
-
-        return fib.map((value, index) => {
-            const currentBet = value;
-            const gain = (currentBet * multiplier) - currentBet - previousBetsSum;
-            totalLoss += currentBet;
-            previousBetsSum += currentBet;
-
-            return {
-                tour: index + 1,
-                currentBet: currentBet,
-                gain: gain,
-                loss: totalLoss
-            };
-        });
-    }
+}) => {
 
 
     const HandleMultiplier = (value: string) => {
@@ -53,40 +29,57 @@ const BetAmountForm = () => {
         setMultiplier(NumberValue)
     }
 
-    const fib = fibonacciSequence(val[0]);
-    const bets = calculateBets(fib); // Calcul des mises et des résultats
+    const HandleUnit = (value: string) => {
+        setUnit(value)
+    }
 
     return (
         <>
-            <h1 className={'font-semibold mb-3'}>Sélectionnez votre premier pari</h1>
-            <div className={'w-full flex'}>
-                <div className={'w-1/2 flex flex-col gap-3'}>
-                    <h1>Mise de depart : <span className={'font-semibold text-lg'}>{val}K</span></h1>
+            <h1 className={'font-semibold mb-4'}>Select your first bet</h1>
+            <div className={'w-full flex lg:flex-row flex-col gap-6'}>
+                <div className={'lg:w-1/2 w-full flex flex-col gap-3'}>
+                    <h1>Starting point : <span className={'font-semibold text-lg'}>{val}K</span></h1>
                     <Slider defaultValue={val} max={13} min={0.5} step={0.5} onValueChange={(i) => setVal(i)}
-                            className={'cursor-pointer mb-3'}/>
-                    <h1>Mise de depart : <span className={'font-semibold text-lg'}>{val}K</span></h1>
+                            className={'cursor-pointer mb-4'}/>
+                    <h1>Type of bet :</h1>
                     <Select onValueChange={HandleMultiplier} defaultValue={multiplier.toString()}>
-                        <SelectTrigger className="w-[180px]">
+                        <SelectTrigger className="w-full">
                             <SelectValue placeholder={`3x`}/>
                         </SelectTrigger>
                         <SelectContent>
                             <SelectGroup>
-                                <SelectItem value="3" className={'cursor-pointer'}>3x (ligne/colonne)</SelectItem>
+                                <SelectItem value="3" className={'cursor-pointer'}>3x (2:1/dozen)</SelectItem>
                                 <SelectItem value="2.77" className={'cursor-pointer'}>2.77x (13/37)</SelectItem>
+                                <SelectItem value="2" className={'cursor-pointer'}>2x (Color/Even-odd/half)</SelectItem>
+                                <SelectItem value="1.8" className={'cursor-pointer'}>1.8x (Fishing)</SelectItem>
+                            </SelectGroup>
+                        </SelectContent>
+                    </Select>
+                    <h1>Unité : </h1>
+
+                    <Select onValueChange={HandleUnit} defaultValue={'K'}>
+                        <SelectTrigger className="w-full">
+                            <SelectValue placeholder={`3x`}/>
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectGroup>
+                                <SelectItem value="U" className={'cursor-pointer'}>Unit</SelectItem>
+                                <SelectItem value="K" className={'cursor-pointer'}>K</SelectItem>
                             </SelectGroup>
                         </SelectContent>
                     </Select>
                 </div>
-                <div className={'w-1/2 px-3 flex flex-wrap gap-1'}>
+                <div className={'lg:w-1/2 w-full px-3 flex flex-wrap gap-1'}>
 
-                {bets.map(({ tour, currentBet, gain, loss }, index) => (
+                    {bets.map(({ spin, currentBet, gain, loss }, index) => (
                         <BetCard
                             key={index}
                             isRed={(index + 1) % 2 !== 0}
                             value={currentBet}
-                            tour={tour}
+                            spin={spin}
                             gain={gain}
                             loss={loss}
+                            unit={unit}
                         />
                     ))}
                 </div>
